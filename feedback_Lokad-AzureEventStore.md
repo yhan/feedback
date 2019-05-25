@@ -1,9 +1,39 @@
+# General
+
+
 # Points of interest
 
-1. The result of projection is immutable
+## Read projection
+1. The result of projection is immutable.  
    Concurrency is not managed at this level.
    
-   
+## Underlying storage
+1. For retriving events, we provide the expected starting position to write, but also interestly with constraint of size of read events. By which we can support chunked read, avoiding GC gen_0 pressure.
+
+    > Remark/question: the semantic optimistic lock is *by convention* providing `lastKnownEventSequenceNumber`. In this lib, we have two notion: a. StartWritingPosition and lastKnownPosition.
+    
+    won't it be more simple to use only just `lastKnownPosition`. Then
+    
+    
+    ```csharp
+    // lastKnownPosition from the actor of write operation
+    // and _lastKnownPosition from the cache
+    
+     if(lastKnownPosition != _lastKnownPosition)
+     {
+        await RefreshCache(cancel);
+     }
+    ```
+    instead of:
+    
+    ```csharp
+     if(position >= _lastKnownPosition)
+     {
+        await RefreshCache(cancel);
+     }
+    ```
+1. blafdqmfqm
+
 # Question
 
 ## Projection
