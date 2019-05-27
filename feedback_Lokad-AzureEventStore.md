@@ -6,6 +6,7 @@
 ## Read projection
 1. The result of projection is immutable.  
    Concurrency is not managed at this level.
+1. An event can be projected with different ways(using different type of projections) to differnt type of `State`
    
 ## Underlying storage
 1. For retriving events, we provide the expected starting position to write, but also interestly with constraint of size of read events. By which we can support chunked read, avoiding GC gen_0 pressure.
@@ -39,7 +40,9 @@
 ## Projection
 1. We can apply an event sequence number 42 to a known state with last event sequence number 1?
    If so, how can we manage `CancellationEvent`, `Patching date event`... ?
-   
+1. Why projection is coupled with a specific event type? How do you resolve probelm: an aggregate (a state) is projected using different types of events?
+
+
 ## API
 
 ## Documentation
