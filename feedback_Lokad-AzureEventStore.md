@@ -1,3 +1,5 @@
+fead back of repo: https://github.com/Lokad/AzureEventStore
+
 # General
 
 
@@ -38,7 +40,18 @@
 # Question
 
 ## Projection
-1. We can apply an event sequence number 42 to a known state with last event sequence number 1?
+1. We can apply an event sequence number 42 to a known state with last event sequence number 1? In this case, 
+
+1) how would you manage consistancy of the `State`?   
+e.g. in a E-commerce context, we have as event of types:
+a. (some events)
+a. ItemAddedToBasket
+a. PaymentAcknowledged
+a. (some other events)
+
+1) how would you manage the consistancy of `State`s, who have relationship among them?
+
+
    If so, how can we manage `CancellationEvent`, `Patching date event`... ?
 1. Why projection is coupled with a specific event type? How do you resolve probelm: an aggregate (a state) is projected using different types of events?
 
