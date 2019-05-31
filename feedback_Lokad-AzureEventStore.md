@@ -1,63 +1,96 @@
-fead back of repo: https://github.com/Lokad/AzureEventStore
+*fead back of Lokad AzureEventStore repository: https://github.com/Lokad/AzureEventStore*
+
+# Disclaimer
+This feedback is based on my limited comprehension on the library. I put down my understanding, some questions are embedded inline.
+
 
 # General
+
+# Why this library?
+Instead of using out-of-box EventStore. For POC?
+
+# Concept
+In addition to README.md of git repository, some points that I consider important to keep in mind:
+
+1. EventStreamService, do:  
+   + write stream   
+   + read stream and construct internal `State`
+     - the way of construction depends on user of this library
+   + Threading
+     - Enqueue of CatchUp in a dedicated thread
+     - CatchUp and Writing to stream in another dedicated thread
+
+1. Each time I want to create a new stream, I should create new instance of `EventStreamService<TEvent, TState>`
 
 
 # Points of interest
 
 ## Read projection
-1. The result of projection is immutable.  
-   Concurrency is not managed at this level.
-1. An event can be projected with different ways(using different type of projections) to differnt type of `State`
+1. The result of projection is immutable. Thus no worry for concurrent access.
+1. An event can be projected with different ways (using different types of projections) to different type of `State`
    
 ## Underlying storage
-1. For retriving events, we provide the expected starting position to write, but also interestly with constraint of size of read events. By which we can support chunked read, avoiding GC gen_0 pressure.
-
-    > Remark/question: the semantic optimistic lock is *by convention* providing `lastKnownEventSequenceNumber`. In this lib, we have two notion: a. StartWritingPosition and lastKnownPosition.
+1. Chunked read
     
-    won't it be more simple to use only just `lastKnownPosition`. Then
-    
-    
-    ```csharp
-    // lastKnownPosition from the actor of write operation
-    // and _lastKnownPosition from the cache
-    
-     if(lastKnownPosition != _lastKnownPosition)
-     {
-        await RefreshCache(cancel);
-     }
-    ```
-    instead of:
-    
-    ```csharp
-     if(position >= _lastKnownPosition)
-     {
-        await RefreshCache(cancel);
-     }
-    ```
-1. blafdqmfqm
+   For retrieving events, we provide the expected starting position to write, but also with constraint of size of read events. By which we can support chunked read, for optimizing network traffic and have reasonable round trip delay.
 
 # Question
 
-## Projection
-1. We can apply an event sequence number 42 to a known state with last event sequence number 1? In this case, 
+## Event sequence
 
-    1. how would you manage consistency of the `State`?   
+Apparently events can be **merged** as per:
+```csharp
+ /// <summary> Raw event data, as read and written through a <see cref="IStorageDriver"/>. </summary>
+    internal sealed class RawEvent
+    {
+        /// <summary>
+        /// The sequence number of the event: these should be strictly increasing, 
+        /// but not necessarily contiguous (e.g. in case of stream rewrites, events may be merged).
+        /// </summary>
+        public readonly uint Sequence;
+
+    }
+```
+Can I get more info for `rewrite` and `merge`? My doubt is: how can we maintain domain event concept if events got merged?
+
+## Projection
+1. We can apply any event with a sequence number greater than the one of the last event processed by this projection. Why we don't impose constraint applyingEvent.Sequence should exactly be lastAppliedEvent.Sequence + 1 ?   
+
+   Without the above constraint,
+
+    -  how would you manage consistency of the `State`?   
     e.g. in a E-commerce context, we have as event of types:  
         1. (some events)  
         1. ItemAddedToBasket  
         1. PaymentAcknowledged
         1. (some other events)
 
-    1. how would you manage the consistency of `State`s, who have relationship among them?
+    - how would you manage the consistency of `State`s, who have relationship among them?
 
-    1. how can we manage `CancellationEvent`, `Patching date event`... ?
-
-
-1. Why projection is coupled with a specific event type? How do you resolve problem: an aggregate (a state) is projected using different types of events?
+    - how can we manage `CancellationEvent`, `Patching date event`... ?
 
 
 ## API
+
+## Implementation details
+1. Why `unit` type is chosen for `Sequence` instead of `long`?
+
+1. Readability of API:
+
+what's going on here in `EventStreamWrapper<TEvent, TState>`?
+
+```csharp
+    /// <summary> Append events, constructed from the state, to the stream.
+    /// </summary>
+    /// <remarks> 
+    /// Builder returns array of events to be appended, and additional data
+    /// that will be returned by this method. Builder may be called more than
+    /// once. 
+    /// </remarks>
+public async Task<AppendResult<T>> AppendEventsAsync<T>(
+    Func<TState, Append<TEvent, T>> builder, 
+    CancellationToken cancel = default(CancellationToken))
+```
 
 ## Documentation
 
