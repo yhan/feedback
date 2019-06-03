@@ -17,7 +17,7 @@ In addition to README.md of git repository, some points that I consider importan
    + read stream and construct internal `State`
      - the way of construction depends on user of this library
    + Threading
-     - Enqueue of CatchUp in a dedicated thread
+     - Enqueue of CatchUp and Appending stream in a dedicated thread
      - CatchUp and Writing to stream in another dedicated thread
 
 1. Each time I want to create a new stream, I should create new instance of `EventStreamService<TEvent, TState>`
