@@ -22,9 +22,13 @@ How whould design this system?
    1. Long polling
    1. Web socket
    1. Server sent event
+   
+   *what kind of time window exigence encourge us to use one or another?*
+   
 1. When you send run command to your write API. What's next?
    - Write API give (REST) resource, give chance for UI to poll?
    - Command executing extremly fast (<1s), status feedback directly?
+   
 1. API design.
    Something like: https://api.projects.lokad/projects/{project-id}/run OR
    https://api.projects.lokad/run-project (with query parameter OR with payload including project id) ?
